@@ -1,6 +1,6 @@
 {
   "name": "pactify-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple API wrapper for Pactify - see https://www.pactify.fr/.",
   "main": "index.js",
   "homepage": "https://github.com/gauthier-th/pactify-api#readme",

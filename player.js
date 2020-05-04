@@ -82,7 +82,7 @@ class Player {
 		}
 		if (this.faction) {
 			this.faction = new (require('./faction'))(this.faction.id, true);
-			this.faction._loadObject(this.faction);
+			this.faction._loadObject(result.faction);
 		}
 	}
 
