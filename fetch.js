@@ -1,4 +1,5 @@
 const request = require('request');
+const md5 = require('md5');
 
 const endpoint = 'https://www.pactify.fr/api';
 
@@ -93,15 +94,48 @@ const endpoint = 'https://www.pactify.fr/api';
  * @property {string} latest 
  */
 
+/**
+ * Returns Pactify bearer authorization token and cookies
+ * @returns {Promise<{ cookies: string, token: string }>}
+ */
+function getHeaders() {
+	return new Promise((resolve, reject) => {
+		request({
+			uri: endpoint
+		}, (error, response, content) => {
+			if (error)
+				return reject(errors(1));
+			const token = response.headers['set-cookie'].filter(header => header.split('; ').find(i => i.startsWith('_sd=')))[0].split('; ').find(i => i.startsWith('_sd=')).substring('_sd='.length);
+			const cookies = {};
+			response.headers['set-cookie'].forEach(cks => {
+				cks.split('; ').forEach(p => {
+					cookies[p.split('=')[0]] = p.substr(p.split('=')[0].length + 1);
+				});
+			});
+			resolve({
+				cookies: Object.keys(cookies).map(ck => ck + '=' + cookies[ck]).join('; '),
+				token: md5('undefined' + token)
+			});
+		});
+	});
+}
 
 /**
  * Search a player by his name
  * @param {string} username 
+ * @param {string} previousHeaders 
  * @returns {Promise<PlayerSearchResult>}
  */
-function searchPlayer(username) {
-	return new Promise((resolve, reject) => {
-		request({ uri: endpoint + '/player/search?name=' + encodeURIComponent(username.toLowerCase()) }, (error, response, content) => {
+function searchPlayer(username, previousHeaders = null) {
+	return new Promise(async (resolve, reject) => {
+		const headers = previousHeaders || await getHeaders();
+		request({
+			uri: endpoint + '/player/search?name=' + encodeURIComponent(username.toLowerCase()),
+			headers: {
+				Authorization: 'Bearer ' + headers.token,
+				Cookie: headers.cookies
+			}
+		}, (error, response, content) => {
 			if (error)
 				return reject(errors(1));
 			try {
@@ -125,11 +159,19 @@ function searchPlayer(username) {
 /**
  * Fetch player infos
  * @param {string} id Player ID
+ * @param {string} previousHeaders 
  * @returns {PlayerInfos}
  */
-function playerInfos(id) {
+function playerInfos(id, previousHeaders = null) {
 	return new Promise(async (resolve, reject) => {
-		request({ uri: endpoint + '/player/' + encodeURIComponent(id) }, (error, response, content) => {
+		const headers = previousHeaders || await getHeaders();
+		request({
+			uri: endpoint + '/player/' + encodeURIComponent(id),
+			headers: {
+				Authorization: 'Bearer ' + headers.token,
+				Cookie: headers.cookies
+			}
+		}, (error, response, content) => {
 			if (error)
 				return reject(errors(1));
 			try {
@@ -165,11 +207,19 @@ function playerInfos(id) {
 /**
  * Search a faction by its name
  * @param {string} name 
+ * @param {string} previousHeaders 
  * @returns {Promise<FactionSearchResult>}
  */
-function searchFaction(name) {
-	return new Promise((resolve, reject) => {
-		request({ uri: endpoint + '/faction/search?name=' + encodeURIComponent(name.toLowerCase()) }, (error, response, content) => {
+function searchFaction(name, previousHeaders = null) {
+	return new Promise(async (resolve, reject) => {
+		const headers = previousHeaders || await getHeaders();
+		request({
+			uri: endpoint + '/faction/search?name=' + encodeURIComponent(name.toLowerCase()),
+			headers: {
+				Authorization: 'Bearer ' + headers.token,
+				Cookie: headers.cookies
+			}
+		}, (error, response, content) => {
 			if (error)
 				return reject(errors(1));
 			try {
@@ -196,11 +246,19 @@ function searchFaction(name) {
 /**
  * Fetch faction infos
  * @param {string} name Faction ID
+ * @param {string} previousHeaders 
  * @returns {Promise<FactionSearchResult>}
  */
-function factionInfos(id) {
+function factionInfos(id, previousHeaders = null) {
 	return new Promise(async (resolve, reject) => {
-		request({ uri: endpoint + '/faction/' + encodeURIComponent(id) }, (error, response, content) => {
+		const headers = previousHeaders || await getHeaders();
+		request({
+			uri: endpoint + '/faction/' + encodeURIComponent(id),
+			headers: {
+				Authorization: 'Bearer ' + headers.token,
+				Cookie: headers.cookies
+			}
+		}, (error, response, content) => {
 			if (error)
 				return reject(errors(1));
 			try {
@@ -240,11 +298,19 @@ function factionInfos(id) {
 /**
  * Fetch ranking infos
  * @param {string} month Month - 'latest' or YYYY-MM
+ * @param {string} previousHeaders 
  * @returns {Promise<RankingInfos>}
  */
-function rankingInfos(month) {
+function rankingInfos(month, previousHeaders = null) {
 	return new Promise(async (resolve, reject) => {
-		request({ uri: endpoint + '/ranking/' + encodeURIComponent(month) }, (error, response, content) => {
+		const headers = previousHeaders || await getHeaders();
+		request({
+			uri: endpoint + '/ranking/' + encodeURIComponent(month),
+			headers: {
+				Authorization: 'Bearer ' + headers.token,
+				Cookie: headers.cookies
+			}
+		}, (error, response, content) => {
 			if (error)
 				return reject(errors(1));
 			try {
